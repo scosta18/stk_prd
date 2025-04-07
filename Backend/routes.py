@@ -1,3 +1,4 @@
+#routes.py
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
 from Backend.services import (
@@ -40,21 +41,78 @@ def technical_indicators(ticker: str, period: str = "6mo"):
         raise HTTPException(status_code=404, detail=result["error"])
     return result
 
+# @router.get("/stock/{ticker}/predict/linear")
+# def predict_linear(ticker: str, days: int = Query(7, ge=1, le=30)):
+#     """Predict stock prices using linear regression"""
+#     result = predict_stock_price_linear(ticker, days)
+#     if "error" in result:
+#         raise HTTPException(status_code=404, detail=result["error"])
+#     return result
+
+# @router.get("/stock/{ticker}/predict/lstm")
+# def predict_lstm(ticker: str, days: int = Query(7, ge=1, le=14)):
+#     """Predict stock prices using LSTM neural network (more accurate but slower)"""
+#     result = predict_stock_price_lstm(ticker, days)
+    
+#     # Add check for None result
+#     if result is None:
+#         raise HTTPException(status_code=500, detail="Prediction returned None")
+        
+#     if "error" in result:
+#         raise HTTPException(status_code=404, detail=result["error"])
+    
+#     return result
+
+# In routes.py
 @router.get("/stock/{ticker}/predict/linear")
 def predict_linear(ticker: str, days: int = Query(7, ge=1, le=30)):
     """Predict stock prices using linear regression"""
+    # Get prediction result
     result = predict_stock_price_linear(ticker, days)
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
+    
+    # Add historical data to the response
+    history_data = get_stock_history(ticker, "3mo")
+    if "error" not in history_data:
+        # Format history in the way the frontend expects
+        historical = []
+        for item in history_data["history"]:
+            historical.append({
+                "date": item["date"],
+                "price": item["close"]
+            })
+        result["historical"] = historical
+    
     return result
 
 @router.get("/stock/{ticker}/predict/lstm")
 def predict_lstm(ticker: str, days: int = Query(7, ge=1, le=14)):
     """Predict stock prices using LSTM neural network (more accurate but slower)"""
+    # Get prediction result
     result = predict_stock_price_lstm(ticker, days)
+    
+    # Add check for None result
+    if result is None:
+        raise HTTPException(status_code=500, detail="Prediction returned None")
+        
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
+    
+    # Add historical data to the response
+    history_data = get_stock_history(ticker, "3mo")
+    if "error" not in history_data:
+        # Format history in the way the frontend expects
+        historical = []
+        for item in history_data["history"]:
+            historical.append({
+                "date": item["date"],
+                "price": item["close"]
+            })
+        result["historical"] = historical
+    
     return result
+
 
 @router.get("/stock/{ticker}/news")
 def stock_news(ticker: str, limit: int = Query(5, ge=1, le=20)):

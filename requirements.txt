@@ -1,0 +1,6 @@
+python -m venv venv   
+pip install uvicorn   
+pip install fastapi 
+pip install yfinance   
+pip install scikit-learn  
+pip install tensorflow

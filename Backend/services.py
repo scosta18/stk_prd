@@ -1,3 +1,4 @@
+#services.py
 import yfinance as yf
 import numpy as np
 import pandas as pd
@@ -225,7 +226,7 @@ def predict_stock_price_linear(ticker: str, days: int = 7):
                 "date": pred_date.strftime("%Y-%m-%d"),
                 "price": round(float(pred_price), 2)
             })
-        
+        print("Res Lin ticker: {}, method: enhanced_linear_regression, predictions: {}, confidence: {}, features_used: {}".format(ticker, predictions, round(float(confidence), 2), features))
         return {
             "ticker": ticker,
             "method": "enhanced_linear_regression",
@@ -237,6 +238,78 @@ def predict_stock_price_linear(ticker: str, days: int = 7):
         return {"error": f"Prediction failed: {str(e)}"}
 
 # LSTM prediction (more advanced ML model)
+# def predict_stock_price_lstm(ticker: str, days: int = 7):
+#     """Predict stock prices using LSTM neural network"""
+#     try:
+#         # Get more historical data for LSTM
+#         stock = yf.Ticker(ticker)
+#         data = stock.history(period="1y")
+        
+#         if data.empty or len(data) < 60:
+#             return {"error": "Insufficient data for LSTM prediction"}
+        
+#         # Extract closing prices and normalize
+#         closing_prices = data['Close'].values.reshape(-1, 1)
+#         scaler = MinMaxScaler(feature_range=(0, 1))
+#         scaled_prices = scaler.fit_transform(closing_prices)
+        
+#         # Create sequences for LSTM
+#         seq_length = 60
+#         X = []
+#         y = []
+        
+#         for i in range(seq_length, len(scaled_prices)):
+#             X.append(scaled_prices[i-seq_length:i, 0])
+#             y.append(scaled_prices[i, 0])
+            
+#         X, y = np.array(X), np.array(y)
+#         X = np.reshape(X, (X.shape[0], X.shape[1], 1))
+        
+#         # Build LSTM model
+#         model = Sequential()
+#         model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], 1)))
+#         model.add(Dropout(0.2))
+#         model.add(LSTM(units=50, return_sequences=False))
+#         model.add(Dropout(0.2))
+#         model.add(Dense(units=1))
+        
+#         # Compile and fit model
+#         model.compile(optimizer='adam', loss='mean_squared_error')
+#         model.fit(X, y, epochs=20, batch_size=32, verbose=0)
+        
+#         # Generate predictions
+#         inputs = scaled_prices[-seq_length:]
+#         predicted_prices = []
+        
+#         for _ in range(days):
+#             X_test = np.array([inputs[-seq_length:, 0]])
+#             X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
+            
+#             pred_price = model.predict(X_test, verbose=0)
+#             inputs = np.append(inputs, pred_price)
+#             inputs = inputs.reshape(-1, 1)
+            
+#             # Inverse transform to get actual price
+#             pred_actual = scaler.inverse_transform(np.array([[pred_price[0, 0]]]))
+#             predicted_prices.append(pred_actual[0, 0])
+        
+#         # Format prediction results
+#         result = {
+#             "ticker": ticker,
+#             "method": "lstm",
+#             "predictions": []
+#         }
+        
+#         for i in range(days):
+#             result["predictions"].append({
+#                 "date": (datetime.now() + timedelta(days=i+1)).strftime("%Y-%m-%d"),
+#                 "price": round(float(predicted_prices[i]), 2)
+#             })
+        
+#         return result
+#     except Exception as e:
+#         return {"error": str(e)}
+
 def predict_stock_price_lstm(ticker: str, days: int = 7):
     """Predict stock prices using LSTM neural network"""
     try:
@@ -304,6 +377,9 @@ def predict_stock_price_lstm(ticker: str, days: int = 7):
                 "date": (datetime.now() + timedelta(days=i+1)).strftime("%Y-%m-%d"),
                 "price": round(float(predicted_prices[i]), 2)
             })
+        
+        # Make sure we return the result!
+        print("Res", result)
         return result
     except Exception as e:
         return {"error": str(e)}
